@@ -7,6 +7,7 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { UsersModule } from './users/users.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { PaymentRequestsModule } from './payment-requests/payment-requests.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     UsersModule,
     PaymentsModule,
     TransactionsModule,
+    PaymentRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
