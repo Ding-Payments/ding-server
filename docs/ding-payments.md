@@ -9,7 +9,7 @@ The main goal is to create a payment experience similar to contactless card paym
 Users can send and receive funds instantly by simply:
 
 1. Opening the app
-2. Entering an amount to send or receive
+2. Entering an amount to receive
 3. Bringing two phones close together
 4. Confirming with a passkey
 5. Completing the Stellar transaction
@@ -48,10 +48,6 @@ The blockchain complexity must remain invisible to the user.
 7. Receiver shares payment request securely through NFC
 
 ### Sender Flow
-
-1. User opens the application
-2. User selects:
-   - “Send Payment”
 
 3. App activates NFC communication mode
 4. Devices are brought together
@@ -217,7 +213,6 @@ Both devices display:
   "recipient": "G...",
   "asset": "USDC",
   "amount": "25.00",
-  "memo": "optional",
   "timestamp": 1740000000,
   "expiresAt": 1740000030
 }
