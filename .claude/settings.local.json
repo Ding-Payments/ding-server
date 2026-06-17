@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsup *)",
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(node *)",
+      "Bash(HOME=/tmp/grantfox-smoke node dist/index.js serve)",
+      "Bash(python3 -c 'import sys,json *)",
+      "Bash(HOME=/tmp/no-grantfox-cfg node dist/index.js serve)",
+      "Bash(python3 -m json.tool)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(lsof -ti:3000)",
+      "Bash(lsof -ti:3003)",
+      "Bash(lsof -i:3000 -i:3003)",
+      "Bash(curl -sf http://localhost:3000/health)",
+      "Bash(curl -sf http://localhost:3000/users/me)",
+      "Bash(curl -sIf http://localhost:3003)",
+      "Bash(curl -s -X GET http://localhost:3000/users/me -H \"Authorization: Bearer fake\")",
+      "Bash(curl -s http://localhost:3000/projects)",
+      "Bash(curl -s http://localhost:3000/api/projects)",
+      "Bash(curl -s -X GET http://localhost:3000/api/users/me -H \"Authorization: Bearer fake\")",
+      "Bash(python3 *)",
+      "Bash(wait)",
+      "Bash(kill 77525 77592 77718)",
+      "Bash(kill -9 77718)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.itehtllpvbtcyyrbnltb:gGzPNJSAcImaujfr@aws-0-us-west-1.pooler.supabase.com:5432/postgres\" npx prisma migrate diff --from-config-datasource --to-schema-datamodel prisma/schema.prisma --script)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.itehtllpvbtcyyrbnltb:gGzPNJSAcImaujfr@aws-0-us-west-1.pooler.supabase.com:5432/postgres\" npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script)"
+    ]
+  }
+}
