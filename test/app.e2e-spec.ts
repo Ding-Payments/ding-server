@@ -3,8 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { SupabaseService } from '../src/supabase/supabase.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -12,17 +10,7 @@ describe('AppController (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .overrideProvider(PrismaService)
-      .useValue({
-        $connect: jest.fn().mockResolvedValue(undefined),
-        $disconnect: jest.fn().mockResolvedValue(undefined),
-      })
-      .overrideProvider(SupabaseService)
-      .useValue({
-        getClient: jest.fn().mockReturnValue({}),
-      })
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -33,5 +21,9 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 });
