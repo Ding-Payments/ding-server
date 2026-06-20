@@ -62,5 +62,4 @@ async function bootstrap() {
     Logger.log(`📚 Swagger docs at http://localhost:${port}/v1/docs`, 'Bootstrap');
   }
 }
-
 void bootstrap();

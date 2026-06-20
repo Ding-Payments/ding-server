@@ -1,10 +1,10 @@
 ---
-description: Core API architecture and project structure for GrantFox UX Bounties
-globs: apps/core-api/**
+description: Core API architecture and project structure for Ding Payments
+globs: src/**
 alwaysApply: true
 ---
 
-# Core API Architecture — GrantFox UX Bounties
+# Core API Architecture — Ding Payments
 
 ## Architecture Overview
 
@@ -24,7 +24,7 @@ Request → Helmet / CORS → ThrottlerGuard → SupabaseAuthGuard → RolesGuar
 ## Project Structure
 
 ```
-apps/core-api/
+ding-server/
 ├── prisma/
 │   ├── schema.prisma
 │   └── seed.ts
@@ -69,10 +69,9 @@ apps/core-api/
 │       │       ├── update-user.dto.ts
 │       │       └── ...
 │       │
-│       ├── bounties/                    # (planned)
-│       ├── applications/                # (planned)
-│       ├── submissions/                 # (planned)
-│       ├── credits/                     # (planned)
+│       ├── payment-requests/
+│       ├── payments/
+│       ├── transactions/
 │       └── ...
 │
 ├── test/                                # E2E tests
@@ -115,5 +114,5 @@ import { AuthenticatedUser } from '../../auth/interfaces';
 import { PrismaService } from '../../database/prisma.service';
 
 // Prisma enums — from @prisma/client
-import { UserRole, BountyStatus } from '@prisma/client';
+import { StellarNetwork, PaymentStatus } from '@prisma/client';
 ```
