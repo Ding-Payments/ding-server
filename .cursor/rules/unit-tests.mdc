@@ -1,16 +1,16 @@
 ---
 description: Unit test patterns, conventions and commands for core-api
-globs: apps/core-api/src/**/*.spec.ts
+globs: src/**/*.spec.ts
 alwaysApply: true
 ---
 
-# Unit Test Conventions — GrantFox UX Bounties
+# Unit Test Conventions — Ding Payments
 
 Tests use **Jest 30** with **@nestjs/testing**. Co-located next to their source files.
 
 ## Useful Commands
 
-Run all commands from `apps/core-api/`:
+Run all commands from the root directory:
 
 ```bash
 # Run ALL unit tests
@@ -37,11 +37,11 @@ npx jest --coverage --testPathPatterns users
 npx jest -t "should throw NotFoundException"
 ```
 
-Or use the npm scripts from the monorepo root:
+Or use the standard npm scripts:
 
 ```bash
-npx turbo test --filter=core-api
-npx turbo test:cov --filter=core-api
+npm run test
+npm run test:cov
 ```
 
 ## Coverage Configuration

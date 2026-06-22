@@ -1,6 +1,6 @@
 ---
 description: Prisma schema and database conventions for core-api
-globs: apps/core-api/prisma/**,apps/core-api/src/database/**
+globs: prisma/**,src/database/**
 alwaysApply: false
 ---
 
