@@ -1,11 +1,16 @@
 // prisma/seed.ts
-import { PrismaClient, StellarNetwork, AssetCode, PaymentRequestStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  StellarNetwork,
+  AssetCode,
+  PaymentRequestStatus,
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 const TESTNET_PUBKEYS = {
   alice: 'GAHJJJKMOKYE4RVPZEWZTKH5FVI4PA3VL7GK2LFNUBSGBV3LZOPEXC',
-  bob:   'GBVKI23OQZCANDXPQC7KVBHFCLNLQZSNWXAZDGB7YKN7RVXBOQERQE'
+  bob: 'GBVKI23OQZCANDXPQC7KVBHFCLNLQZSNWXAZDGB7YKN7RVXBOQERQE',
 };
 
 async function main() {
@@ -32,7 +37,12 @@ async function main() {
 
   // Wallets
   await prisma.wallet.upsert({
-    where: { stellarPublicKey_network: { stellarPublicKey: TESTNET_PUBKEYS.alice, network: StellarNetwork.TESTNET } },
+    where: {
+      stellarPublicKey_network: {
+        stellarPublicKey: TESTNET_PUBKEYS.alice,
+        network: StellarNetwork.TESTNET,
+      },
+    },
     update: {},
     create: {
       userId: alice.id,
@@ -44,7 +54,12 @@ async function main() {
   });
 
   await prisma.wallet.upsert({
-    where: { stellarPublicKey_network: { stellarPublicKey: TESTNET_PUBKEYS.bob, network: StellarNetwork.TESTNET } },
+    where: {
+      stellarPublicKey_network: {
+        stellarPublicKey: TESTNET_PUBKEYS.bob,
+        network: StellarNetwork.TESTNET,
+      },
+    },
     update: {},
     create: {
       userId: bob.id,
@@ -70,9 +85,14 @@ async function main() {
     },
   });
 
-  console.log('✅ Seed complete — alice@ding.test (receiver), bob@ding.test (sender)');
+  console.log(
+    'eed complete — alice@ding.test (receiver), bob@ding.test (sender)',
+  );
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());
