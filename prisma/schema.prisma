@@ -50,7 +50,13 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  wallets        Wallet[]
+  wallets             Wallet[]
+  paymentRequests     PaymentRequest[]
+  sendPayments        Payment[]            @relation("SendPayments")
+  receivedPayments    Payment[]            @relation("ReceivedPayments")
+  transactions        Transaction[]
+  webAuthnCredentials WebAuthnCredential[]
+  webAuthnChallenges  WebAuthnChallenge[]
 
   @@map("users")
 }
@@ -64,9 +70,124 @@ model Wallet {
   label            String?
   createdAt        DateTime       @default(now())
 
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([stellarPublicKey, network])
   @@index([userId, isPrimary])
   @@map("wallets")
+}
+
+model PaymentRequest {
+  id                String               @id @default(uuid())
+  externalRequestId String?              @unique
+  receiverUserId    String
+  recipient         String
+  asset             AssetCode
+  amount            Decimal              @db.Decimal(20, 7)
+  memo              String?              @db.VarChar(280)
+  status            PaymentRequestStatus @default(CREATED)
+  payloadTimestamp  DateTime
+  expiresAt         DateTime
+  metadata          Json?
+  createdAt         DateTime             @default(now())
+
+  receiverUser  User           @relation(fields: [receiverUserId], references: [id], onDelete: Cascade)
+  payment       Payment?
+  usedRequestId UsedRequestId?
+
+  @@index([receiverUserId, status])
+  @@map("payment_requests")
+}
+
+model Payment {
+  id               String        @id @default(uuid())
+  paymentRequestId String?       @unique
+  senderUserId     String
+  receiverUserId   String
+  recipient        String
+  senderPublicKey  String
+  asset            AssetCode
+  amount           Decimal       @db.Decimal(20, 7)
+  status           PaymentStatus @default(CREATED)
+  stellarTxHash    String?       @unique
+  failureReason    String?
+  failureCode      String?
+  authorizedAt     DateTime?
+  submittedAt      DateTime?
+  confirmedAt      DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  paymentRequest PaymentRequest? @relation(fields: [paymentRequestId], references: [id], onDelete: SetNull)
+  senderUser     User            @relation("SendPayments", fields: [senderUserId], references: [id], onDelete: Cascade)
+  receiverUser   User            @relation("ReceivedPayments", fields: [receiverUserId], references: [id], onDelete: Cascade)
+  transaction    Transaction?
+
+  @@index([senderUserId, status])
+  @@index([receiverUserId, status])
+  @@map("payments")
+}
+
+model Transaction {
+  id            String               @id @default(uuid())
+  userId        String
+  paymentId     String?              @unique
+  stellarTxHash String
+  direction     TransactionDirection
+  counterparty  String
+  asset         AssetCode
+  amount        Decimal              @db.Decimal(20, 7)
+  memo          String?              @db.VarChar(280)
+  ledger        Int?
+  network       StellarNetwork
+  createdAt     DateTime             @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("transactions")
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(uuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  deviceName   String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("webauthn_credentials")
+}
+
+model WebAuthnChallenge {
+  id        String   @id @default(uuid())
+  userId    String
+  challenge String
+  type      String
+  paymentId String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, expiresAt])
+  @@map("webauthn_challenges")
+}
+
+model UsedRequestId {
+  id               String   @id @default(uuid())
+  requestId        String   @unique
+  paymentRequestId String   @unique
+  consumedAt       DateTime @default(now())
+
+  paymentRequest PaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Cascade)
+
+  @@map("used_request_ids")
 }
