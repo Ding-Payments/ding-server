@@ -1,6 +1,6 @@
 ---
 description: NestJS module, controller, and service patterns for core-api
-globs: apps/core-api/src/modules/**/*.ts
+globs: src/modules/**/*.ts
 alwaysApply: true
 ---
 

@@ -17,7 +17,7 @@ You are a Senior Backend Engineer working on a **NestJS API** with **Prisma** an
 ## Project Structure
 
 ```
-apps/ding-server/src/modules/{feature}/
+src/modules/{feature}/
 ├── {feature}.module.ts
 ├── {feature}.controller.ts
 ├── {feature}.service.ts
@@ -46,16 +46,15 @@ apps/ding-server/src/modules/{feature}/
 
 ## Error Handling
 
-- GitHub API errors (404/410 for deleted resources): log WARN + return gracefully, never throw ugly stack traces
-- Business validation failures: throw specific NestJS HTTP exceptions
+- Business validation failures: throw specific NestJS HTTP exceptions (e.g. `BadRequestException`, `ConflictException`)
 - Database errors: let Prisma exceptions propagate (handled by global filter)
 
 ## Documentation
 
-Detailed docs for each subsystem live in `apps/ding-server/docs/`. Reference them for deep context:
+Detailed docs for each subsystem live in `docs/`. Reference them for deep context:
 
-- `ARCHITECTURE.md` — overall structure
-- `GITHUB_WEBHOOKS.md` — webhook event handling
-- `TIER_SYSTEM_FINAL.md` — FoxPoints and tier system
-- `UNIT_TESTS.md` — testing patterns and conventions
+- `ding-payments.md` — overall product flows and UX
+- `server-build-plan.md` — server backend build plan
+- `server-build-plan-consolidated.md` — consolidated plan
+- `unit-tests.md` — testing patterns and conventions
 - `DATABASE.md` — Prisma setup and commands
