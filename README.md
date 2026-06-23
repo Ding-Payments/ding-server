@@ -1,98 +1,124 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Ding Payments — Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API for **Ding Payments**: peer-to-peer NFC payments on the [Stellar](https://stellar.org) network (testnet MVP).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The server validates NFC payment requests against the `payment-request.v1` contract, orchestrates the payment lifecycle, relays signed transactions to Stellar, and exposes transaction history.
 
-## Description
+> **Mobile client:** The Expo app lives in a separate repository — [Ding-Payments/ding-payments](https://github.com/Ding-Payments/ding-payments).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | NestJS 11 |
+| Language | TypeScript 5.7 (strict) |
+| ORM | Prisma + PostgreSQL |
+| Database hosting | Supabase |
+| Session auth | Supabase Auth (JWT) |
+| Payment auth | WebAuthn (passkeys) |
+| Blockchain | `@stellar/stellar-sdk` (Horizon + RPC) |
+| Validation | `class-validator`, `class-transformer` |
+| Config | `@nestjs/config` + Joi |
+| API docs | `@nestjs/swagger` |
+| Tests | Jest + Supertest |
+
+## Prerequisites
+
+- **Node.js 20+** and npm
+- A **Supabase** project with PostgreSQL (`DATABASE_URL` and `DIRECT_URL`)
+- Stellar **testnet** access (default URLs are provided in `.env.example`)
 
 ## Project setup
 
 ```bash
-$ npm install
+# Install dependencies
+npm install
+
+# Configure environment (Windows: copy .env.example .env)
+cp .env.example .env
+# Edit .env with your Supabase credentials and secrets
+
+npm run prisma:generate
+npm run prisma:migrate
+
+# Start development server
+npm run start:dev
 ```
 
-## Compile and run the project
+The API is versioned under `/v1`. Swagger UI is available at `/docs` when the server is running.
 
-```bash
-# development
-$ npm run start
+## Scripts
 
-# watch mode
-$ npm run start:dev
+| Command | Description |
+|---------|-------------|
+| `npm run start:dev` | Start with hot reload |
+| `npm run start:prod` | Run compiled build |
+| `npm run build` | Compile TypeScript |
+| `npm run lint` | Run ESLint |
+| `npm test` | Unit tests |
+| `npm run test:e2e` | End-to-end tests |
+| `npm run test:cov` | Coverage report |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate` | Create/apply migrations |
+| `npm run prisma:studio` | Open Prisma Studio |
+| `npm run prisma:seed` | Seed development data |
 
-# production mode
-$ npm run start:prod
+## Project structure
+
+Project structure:
+
+```
+ding-server/
+├── prisma/                 # Schema, migrations, seed
+├── docs/                   # Architecture, build plan, contracts
+├── src/
+│   ├── main.ts
+│   ├── app.module.ts
+│   ├── config/             # ConfigModule + env validation
+│   ├── common/             # Filters, interceptors, decorators
+│   ├── database/           # PrismaService (global)
+│   ├── auth/               # Supabase JWT guards
+│   ├── stellar/            # Horizon/RPC integration
+│   ├── webauthn/           # Passkey verification
+│   ├── contracts/          # payment-request.v1 contract
+│   └── modules/
+│       ├── users/
+│       ├── payment-requests/
+│       ├── payments/
+│       └── transactions/
+└── test/                   # E2E tests
 ```
 
-## Run tests
+## Documentation
 
-```bash
-# unit tests
-$ npm run test
+| Document | Description |
+|----------|-------------|
+| [docs/ding-payments.md](./docs/ding-payments.md) | Product vision and UX flows |
+| [docs/server-build-plan.md](./docs/server-build-plan.md) | Full server build plan (SRV tasks) |
+| [docs/server-build-plan-consolidated.md](./docs/server-build-plan-consolidated.md) | Consolidated task reference |
 
-# e2e tests
-$ npm run test:e2e
+## Supported assets (MVP)
 
-# test coverage
-$ npm run test:cov
-```
+| Asset | Network | Notes |
+|-------|---------|-------|
+| XLM | Stellar testnet | Native asset |
+| USDC | Stellar testnet | Issuer via `STELLAR_USDC_ISSUER` in `.env` |
 
-## Deployment
+## Environment variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Copy `.env.example` to `.env` and replace placeholders with your values. Variable groups:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- **App** — `NODE_ENV`, `PORT`, `API_PREFIX`, `CORS_ORIGINS`
+- **Database** — `DATABASE_URL`, `DIRECT_URL` (Supabase PostgreSQL)
+- **Supabase Auth** — `SUPABASE_URL`, `SUPABASE_JWT_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`
+- **Stellar** — network, Horizon/RPC URLs, USDC issuer, network passphrase
+- **WebAuthn** — RP ID, name, and origin (must match the Expo client)
+- **Payments / rate limiting** — submit timeouts, poll intervals, throttle settings
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+See `.env.example` for the full list with placeholder values.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Security notes
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Never commit `.env` or real secrets to the repository.
+- Do not log JWTs, service role keys, or raw WebAuthn challenges.
+- Hybrid auth model: Supabase session for API access + WebAuthn for payment approval.
