@@ -81,7 +81,7 @@ describe('AppController (e2e)', () => {
     expect(response.body).toMatchObject({
       statusCode: 404,
       message: 'Cannot GET /v1/nonexistent',
-      code: 'Not Found',
+      code: 'NOT_FOUND',
       errors: {},
       path: '/v1/nonexistent',
     });
