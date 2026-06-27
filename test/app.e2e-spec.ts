@@ -82,7 +82,7 @@ describe('AppController (e2e)', () => {
       statusCode: 404,
       message: 'Cannot GET /v1/nonexistent',
       code: 'NOT_FOUND',
-      errors: {},
+      errors: [],
       path: '/v1/nonexistent',
     });
 
