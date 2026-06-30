@@ -91,6 +91,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@stellar/stellar-sdk/node_modules/@noble/hashes)/)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
