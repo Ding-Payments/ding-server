@@ -16,6 +16,10 @@ async function bootstrap() {
   const nodeEnv = configService.get<string>('app.nodeEnv') ?? 'development';
   const port = configService.get<number>('app.port') ?? 3000;
   const corsOrigins = configService.get<string>('app.corsOrigins') ?? '';
+  const apiPrefix = configService.get<string>('app.apiPrefix') ?? 'v1';
+  const defaultVersion = apiPrefix.startsWith('v')
+    ? apiPrefix.slice(1)
+    : apiPrefix;
 
   app.use(helmet());
   app.use(compression());
@@ -35,12 +39,11 @@ async function bootstrap() {
     }),
   );
 
-  app.enableVersioning({ type: VersioningType.URI });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion });
 
-  let swaggerEnabled = false;
+  const swaggerEnabled = nodeEnv !== 'production';
 
-  if (nodeEnv !== 'production') {
-    swaggerEnabled = true;
+  if (swaggerEnabled) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Ding Payments API')
       .setDescription('Self-custodial Stellar P2P payments via NFC')
@@ -49,7 +52,7 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('/v1/docs', app, document);
+    SwaggerModule.setup(`/${apiPrefix}/docs`, app, document);
   }
 
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -57,10 +60,13 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  Logger.log(`🚀 Server running on http://localhost:${port}/v1`, 'Bootstrap');
+  Logger.log(
+    `🚀 Server running on http://localhost:${port}/${apiPrefix}`,
+    'Bootstrap',
+  );
   if (swaggerEnabled) {
     Logger.log(
-      `📚 Swagger docs at http://localhost:${port}/v1/docs`,
+      `📚 Swagger docs at http://localhost:${port}/${apiPrefix}/docs`,
       'Bootstrap',
     );
   }
