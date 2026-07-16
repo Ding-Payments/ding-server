@@ -24,8 +24,8 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secret: jwtSecret,
-    } as any);
+      secretOrKey: jwtSecret,
+    });
   }
 
   async validate(payload: SupabaseJwtPayload): Promise<ValidatedSupabaseUser> {

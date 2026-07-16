@@ -8,19 +8,19 @@ The server validates NFC payment requests against the `payment-request.v1` contr
 
 ## Tech stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | NestJS 11 |
-| Language | TypeScript 5.7 (strict) |
-| ORM | Prisma + PostgreSQL |
-| Database hosting | Supabase |
-| Session auth | Supabase Auth (JWT) |
-| Payment auth | WebAuthn (passkeys) |
-| Blockchain | `@stellar/stellar-sdk` (Horizon + RPC) |
-| Validation | `class-validator`, `class-transformer` |
-| Config | `@nestjs/config` + Joi |
-| API docs | `@nestjs/swagger` |
-| Tests | Jest + Supertest |
+| Layer            | Technology                             |
+| ---------------- | -------------------------------------- |
+| Framework        | NestJS 11                              |
+| Language         | TypeScript 5.7 (strict)                |
+| ORM              | Prisma + PostgreSQL                    |
+| Database hosting | Supabase                               |
+| Session auth     | Supabase Auth (JWT)                    |
+| Payment auth     | WebAuthn (passkeys)                    |
+| Blockchain       | `@stellar/stellar-sdk` (Horizon + RPC) |
+| Validation       | `class-validator`, `class-transformer` |
+| Config           | `@nestjs/config` + Joi                 |
+| API docs         | `@nestjs/swagger`                      |
+| Tests            | Jest + Supertest                       |
 
 ## Prerequisites
 
@@ -49,19 +49,19 @@ The API is versioned under `/v1`. Swagger UI is available at `/docs` when the se
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run start:dev` | Start with hot reload |
-| `npm run start:prod` | Run compiled build |
-| `npm run build` | Compile TypeScript |
-| `npm run lint` | Run ESLint |
-| `npm test` | Unit tests |
-| `npm run test:e2e` | End-to-end tests |
-| `npm run test:cov` | Coverage report |
-| `npm run prisma:generate` | Generate Prisma client |
-| `npm run prisma:migrate` | Create/apply migrations |
-| `npm run prisma:studio` | Open Prisma Studio |
-| `npm run prisma:seed` | Seed development data |
+| Command                   | Description             |
+| ------------------------- | ----------------------- |
+| `npm run start:dev`       | Start with hot reload   |
+| `npm run start:prod`      | Run compiled build      |
+| `npm run build`           | Compile TypeScript      |
+| `npm run lint`            | Run ESLint              |
+| `npm test`                | Unit tests              |
+| `npm run test:e2e`        | End-to-end tests        |
+| `npm run test:cov`        | Coverage report         |
+| `npm run prisma:generate` | Generate Prisma client  |
+| `npm run prisma:migrate`  | Create/apply migrations |
+| `npm run prisma:studio`   | Open Prisma Studio      |
+| `npm run prisma:seed`     | Seed development data   |
 
 ## Project structure
 
@@ -91,18 +91,18 @@ ding-server/
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [docs/ding-payments.md](./docs/ding-payments.md) | Product vision and UX flows |
-| [docs/server-build-plan.md](./docs/server-build-plan.md) | Full server build plan (SRV tasks) |
-| [docs/server-build-plan-consolidated.md](./docs/server-build-plan-consolidated.md) | Consolidated task reference |
+| Document                                                                           | Description                        |
+| ---------------------------------------------------------------------------------- | ---------------------------------- |
+| [docs/ding-payments.md](./docs/ding-payments.md)                                   | Product vision and UX flows        |
+| [docs/server-build-plan.md](./docs/server-build-plan.md)                           | Full server build plan (SRV tasks) |
+| [docs/server-build-plan-consolidated.md](./docs/server-build-plan-consolidated.md) | Consolidated task reference        |
 
 ## Supported assets (MVP)
 
-| Asset | Network | Notes |
-|-------|---------|-------|
-| XLM | Stellar testnet | Native asset |
-| USDC | Stellar testnet | Issuer via `STELLAR_USDC_ISSUER` in `.env` |
+| Asset | Network         | Notes                                      |
+| ----- | --------------- | ------------------------------------------ |
+| XLM   | Stellar testnet | Native asset                               |
+| USDC  | Stellar testnet | Issuer via `STELLAR_USDC_ISSUER` in `.env` |
 
 ## Environment variables
 
