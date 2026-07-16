@@ -1,0 +1,9 @@
+# Vendored agent/skill docs and long-form docs are not part of the source
+# formatting contract.
+/.agents
+/.claude
+/docs
+
+# Generated / build output
+/dist
+/coverage
