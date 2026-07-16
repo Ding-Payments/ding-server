@@ -12,6 +12,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 import { AppModule } from './../src/app.module';
+import { PrismaService } from '../src/database/prisma.service';
 import type { Application as ExpressApplication } from 'express';
 
 describe('AppController (e2e)', () => {
@@ -55,7 +56,10 @@ describe('AppController (e2e)', () => {
         }),
         AppModule,
       ],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.use(helmet());

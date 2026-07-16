@@ -33,9 +33,8 @@ describe('SupabaseAuthGuard', () => {
     const mockHandler = () => {};
     const mockClass = class {};
 
-    const mockReflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(true),
-    } as unknown as Reflector;
+    const getAllAndOverride = jest.fn().mockReturnValue(true);
+    const mockReflector = { getAllAndOverride } as unknown as Reflector;
 
     const guard = new SupabaseAuthGuard(mockReflector);
 
@@ -44,11 +43,11 @@ describe('SupabaseAuthGuard', () => {
       getClass: () => mockClass,
     } as unknown as ExecutionContext;
 
-    guard.canActivate(mockContext);
+    void guard.canActivate(mockContext);
 
-    expect(mockReflector.getAllAndOverride).toHaveBeenCalledWith(
-      IS_PUBLIC_KEY,
-      [mockHandler, mockClass],
-    );
+    expect(getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, [
+      mockHandler,
+      mockClass,
+    ]);
   });
 });

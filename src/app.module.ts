@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database';
 import { AuthModule } from './auth/auth.module';
 import { SupabaseAuthGuard } from './auth/guards/supabase-auth.guard';
+import { PaymentRequestsModule } from './modules/payment-requests/payment-requests.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SupabaseAuthGuard } from './auth/guards/supabase-auth.guard';
     }),
     DatabaseModule,
     AuthModule,
+    PaymentRequestsModule,
   ],
   controllers: [AppController],
   providers: [

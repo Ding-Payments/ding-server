@@ -19,7 +19,9 @@ describe('CurrentUser Decorator Logic', () => {
       }),
     } as unknown as ExecutionContext;
 
-    const request = mockContext.switchToHttp().getRequest();
+    const request = mockContext
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
     const result = request.user;
 
     expect(result).toEqual(mockUser);
@@ -41,7 +43,9 @@ describe('CurrentUser Decorator Logic', () => {
       }),
     } as unknown as ExecutionContext;
 
-    const request = mockContext.switchToHttp().getRequest();
+    const request = mockContext
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
     const result = request.user;
 
     expect(result.supabaseUserId).toBe('user-456');
@@ -60,7 +64,9 @@ describe('CurrentUser Decorator Logic', () => {
       }),
     } as unknown as ExecutionContext;
 
-    const request = mockContext.switchToHttp().getRequest();
+    const request = mockContext
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
     const result = request.user;
 
     expect(result.supabaseUserId).toBe('user-789');
