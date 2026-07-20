@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import configuration from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
@@ -9,6 +10,8 @@ import { DatabaseModule } from './database';
 import { AuthModule } from './auth/auth.module';
 import { SupabaseAuthGuard } from './auth/guards/supabase-auth.guard';
 import { PaymentRequestsModule } from './modules/payment-requests/payment-requests.module';
+import { WebAuthnModule } from './webauthn/webauthn.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -22,9 +25,12 @@ import { PaymentRequestsModule } from './modules/payment-requests/payment-reques
       },
       load: [configuration],
     }),
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     AuthModule,
     PaymentRequestsModule,
+    WebAuthnModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [

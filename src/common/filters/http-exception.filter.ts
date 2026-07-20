@@ -64,7 +64,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
           message = String(rawMessage);
         }
 
-        if (typeof body.error === 'string') {
+        if (typeof body.code === 'string') {
+          code = body.code;
+        } else if (typeof body.error === 'string') {
           code = body.error.toUpperCase().replace(/\s+/g, '_');
         }
       }
