@@ -55,14 +55,16 @@ const mockUser: AuthenticatedUser = { supabaseUserId: 'user-supabase-id' };
 
 describe('PaymentRequestsService', () => {
   let service: PaymentRequestsService;
-  let repo: jest.Mocked<PaymentRequestsRepository>;
+  let repo: { create: jest.Mock; findById: jest.Mock };
 
   beforeEach(() => {
     repo = {
       create: jest.fn(),
       findById: jest.fn(),
-    } as unknown as jest.Mocked<PaymentRequestsRepository>;
-    service = new PaymentRequestsService(repo);
+    };
+    service = new PaymentRequestsService(
+      repo as unknown as PaymentRequestsRepository,
+    );
   });
 
   // ── validate ──────────────────────────────────────────────────────────────

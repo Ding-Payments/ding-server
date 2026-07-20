@@ -21,7 +21,7 @@ const mockResponseDto = {
 
 describe('PaymentRequestsController', () => {
   let controller: PaymentRequestsController;
-  let service: jest.Mocked<PaymentRequestsService>;
+  let service: { validate: jest.Mock; create: jest.Mock; findById: jest.Mock };
 
   beforeEach(async () => {
     const mockService = {
@@ -39,7 +39,7 @@ describe('PaymentRequestsController', () => {
     }).compile();
 
     controller = moduleRef.get(PaymentRequestsController);
-    service = moduleRef.get(PaymentRequestsService);
+    service = mockService;
   });
 
   describe('validate()', () => {
