@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -24,8 +25,25 @@ import { WebAuthnRepository } from './webauthn.repository';
 import {
   CHALLENGE_TTL_MS,
   CHALLENGE_TYPE,
+  MAX_CREDENTIALS_PER_USER,
   WEBAUTHN_ERROR,
 } from './webauthn.constants';
+
+export interface WebAuthnCredentialSummary {
+  id: string;
+  deviceName: string | null;
+  createdAt: Date;
+  lastUsedAt: Date | null;
+}
+
+/** Minimal shape of a stored credential record, as returned by the repository. */
+interface StoredCredentialRecord {
+  id: string;
+  credentialId: string;
+  deviceName: string | null;
+  createdAt: Date;
+  lastUsedAt: Date | null;
+}
 
 interface RpConfig {
   rpId: string;
@@ -50,13 +68,23 @@ export class WebAuthnService {
     const user = await this.resolveUser(authUser);
     const existing = await this.repo.listByUser(user.id);
 
+    if (existing.length >= MAX_CREDENTIALS_PER_USER) {
+      throw new ConflictException({
+        statusCode: 409,
+        message: `Maximum of ${MAX_CREDENTIALS_PER_USER} passkeys reached — remove one before adding another.`,
+        code: WEBAUTHN_ERROR.CREDENTIAL_LIMIT_REACHED,
+      });
+    }
+
     const options = await generateRegistrationOptions({
       rpName,
       rpID: rpId,
       userName: user.email,
       userID: new TextEncoder().encode(user.id),
       attestationType: 'none',
-      excludeCredentials: existing.map((c) => ({ id: c.credentialId })),
+      excludeCredentials: existing.map((c: StoredCredentialRecord) => ({
+        id: c.credentialId,
+      })),
       authenticatorSelection: {
         residentKey: 'preferred',
         userVerification: 'preferred',
@@ -75,6 +103,7 @@ export class WebAuthnService {
   async verifyRegistration(
     authUser: AuthenticatedUser,
     body: RegistrationResponseJSON,
+    deviceName?: string,
   ): Promise<{ verified: true; credentialId: string }> {
     const { rpId, origin } = this.rp();
     const user = await this.resolveUser(authUser);
@@ -123,6 +152,7 @@ export class WebAuthnService {
         credentialId: credential.id,
         publicKey: Uint8Array.from(credential.publicKey),
         counter: BigInt(credential.counter),
+        deviceName: deviceName?.trim() || null,
       });
     } catch (err) {
       if (isUniqueViolation(err)) {
@@ -155,7 +185,9 @@ export class WebAuthnService {
 
     const options = await generateAuthenticationOptions({
       rpID: rpId,
-      allowCredentials: credentials.map((c) => ({ id: c.credentialId })),
+      allowCredentials: credentials.map((c: StoredCredentialRecord) => ({
+        id: c.credentialId,
+      })),
       userVerification: 'preferred',
     });
 
@@ -230,6 +262,55 @@ export class WebAuthnService {
       BigInt(verification.authenticationInfo.newCounter),
       new Date(),
     );
+  }
+
+  async listCredentials(
+    authUser: AuthenticatedUser,
+  ): Promise<WebAuthnCredentialSummary[]> {
+    const user = await this.resolveUser(authUser);
+    const credentials = await this.repo.listByUser(user.id);
+    return credentials.map((c: StoredCredentialRecord) => ({
+      id: c.id,
+      deviceName: c.deviceName,
+      createdAt: c.createdAt,
+      lastUsedAt: c.lastUsedAt,
+    }));
+  }
+
+  /**
+   * Revoke (delete) a registered passkey. Enforces the "never zero" rule from
+   * the per-device policy: a user's last remaining credential cannot be
+   * revoked, since that would lock them out of authorizing payments.
+   */
+  async revokeCredential(
+    authUser: AuthenticatedUser,
+    credentialRecordId: string,
+  ): Promise<void> {
+    const user = await this.resolveUser(authUser);
+
+    const credential = await this.repo.findByIdForUser(
+      credentialRecordId,
+      user.id,
+    );
+    if (!credential) {
+      throw new NotFoundException({
+        statusCode: 404,
+        message: 'Passkey not found.',
+        code: WEBAUTHN_ERROR.CREDENTIAL_NOT_FOUND,
+      });
+    }
+
+    const total = await this.repo.countByUser(user.id);
+    if (total <= 1) {
+      throw new ConflictException({
+        statusCode: 409,
+        message:
+          'Cannot remove your last passkey — register another device first.',
+        code: WEBAUTHN_ERROR.LAST_CREDENTIAL,
+      });
+    }
+
+    await this.repo.deleteById(credential.id);
   }
 
   private rp(): RpConfig {

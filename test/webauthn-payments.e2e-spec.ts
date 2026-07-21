@@ -11,6 +11,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   INestApplication,
+  ConflictException,
+  NotFoundException,
   ValidationPipe,
   VersioningType,
 } from '@nestjs/common';
@@ -59,6 +61,8 @@ describe('WebAuthn + payments authorize (e2e)', () => {
     verifyRegistration: jest.Mock;
     generateAuthenticationOptions: jest.Mock;
     verifyPaymentAssertion: jest.Mock;
+    listCredentials: jest.Mock;
+    revokeCredential: jest.Mock;
   };
   let paymentsRepoMock: { findById: jest.Mock; markAuthorized: jest.Mock };
   let usersMock: {
@@ -78,6 +82,15 @@ describe('WebAuthn + payments authorize (e2e)', () => {
         .fn()
         .mockResolvedValue({ challenge: 'auth-challenge' }),
       verifyPaymentAssertion: jest.fn().mockResolvedValue(undefined),
+      listCredentials: jest.fn().mockResolvedValue([
+        {
+          id: 'record-1',
+          deviceName: 'iPhone 15',
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+          lastUsedAt: null,
+        },
+      ]),
+      revokeCredential: jest.fn().mockResolvedValue(undefined),
     };
     paymentsRepoMock = {
       findById: jest.fn().mockResolvedValue({
@@ -157,6 +170,103 @@ describe('WebAuthn + payments authorize (e2e)', () => {
         .set('Authorization', bearer());
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ challenge: 'reg-challenge' });
+    });
+
+    it('returns 409 when the per-device credential limit is reached', async () => {
+      webAuthnMock.generateRegistrationOptions.mockRejectedValueOnce(
+        new ConflictException({
+          statusCode: 409,
+          message: 'Maximum of 5 passkeys reached.',
+          code: 'WEBAUTHN_CREDENTIAL_LIMIT_REACHED',
+        }),
+      );
+      const res = await request(app.getHttpServer())
+        .post('/v1/webauthn/register/options')
+        .set('Authorization', bearer());
+      expect(res.status).toBe(409);
+      expect((res.body as { code?: string }).code).toBe(
+        'WEBAUTHN_CREDENTIAL_LIMIT_REACHED',
+      );
+    });
+  });
+
+  describe('GET /v1/webauthn/credentials', () => {
+    it('returns 401 without a bearer token', async () => {
+      const res = await request(app.getHttpServer()).get(
+        '/v1/webauthn/credentials',
+      );
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 200 with the mapped device list', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/v1/webauthn/credentials')
+        .set('Authorization', bearer());
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([
+        {
+          id: 'record-1',
+          deviceName: 'iPhone 15',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          lastUsedAt: null,
+        },
+      ]);
+    });
+  });
+
+  describe('DELETE /v1/webauthn/credentials/:id', () => {
+    const RECORD_ID = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
+
+    it('returns 400 for a non-UUID id', async () => {
+      const res = await request(app.getHttpServer())
+        .delete('/v1/webauthn/credentials/not-a-uuid')
+        .set('Authorization', bearer());
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 204 on successful revocation', async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`/v1/webauthn/credentials/${RECORD_ID}`)
+        .set('Authorization', bearer());
+      expect(res.status).toBe(204);
+      expect(webAuthnMock.revokeCredential).toHaveBeenCalledWith(
+        expect.objectContaining({ supabaseUserId: 'test-supabase-user-id' }),
+        RECORD_ID,
+      );
+    });
+
+    it('returns 404 when the credential is not found', async () => {
+      webAuthnMock.revokeCredential.mockRejectedValueOnce(
+        new NotFoundException({
+          statusCode: 404,
+          message: 'Passkey not found.',
+          code: 'WEBAUTHN_CREDENTIAL_NOT_FOUND',
+        }),
+      );
+      const res = await request(app.getHttpServer())
+        .delete(`/v1/webauthn/credentials/${RECORD_ID}`)
+        .set('Authorization', bearer());
+      expect(res.status).toBe(404);
+      expect((res.body as { code?: string }).code).toBe(
+        'WEBAUTHN_CREDENTIAL_NOT_FOUND',
+      );
+    });
+
+    it('returns 409 when revoking the last remaining passkey', async () => {
+      webAuthnMock.revokeCredential.mockRejectedValueOnce(
+        new ConflictException({
+          statusCode: 409,
+          message: 'Cannot remove your last passkey.',
+          code: 'WEBAUTHN_LAST_CREDENTIAL',
+        }),
+      );
+      const res = await request(app.getHttpServer())
+        .delete(`/v1/webauthn/credentials/${RECORD_ID}`)
+        .set('Authorization', bearer());
+      expect(res.status).toBe(409);
+      expect((res.body as { code?: string }).code).toBe(
+        'WEBAUTHN_LAST_CREDENTIAL',
+      );
     });
   });
 
