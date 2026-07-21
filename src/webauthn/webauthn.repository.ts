@@ -87,9 +87,20 @@ export class WebAuthnRepository {
     });
   }
 
+  countByUser(userId: string) {
+    return this.prisma.webAuthnCredential.count({ where: { userId } });
+  }
+
   findByCredentialId(credentialId: string) {
     return this.prisma.webAuthnCredential.findUnique({
       where: { credentialId },
+    });
+  }
+
+  /** Scoped lookup by internal `id` (not `credentialId`) for device management. */
+  findByIdForUser(id: string, userId: string) {
+    return this.prisma.webAuthnCredential.findFirst({
+      where: { id, userId },
     });
   }
 
@@ -98,5 +109,9 @@ export class WebAuthnRepository {
       where: { credentialId },
       data: { counter, lastUsedAt },
     });
+  }
+
+  deleteById(id: string) {
+    return this.prisma.webAuthnCredential.delete({ where: { id } });
   }
 }

@@ -1,9 +1,23 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConflictResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import type {
@@ -18,6 +32,7 @@ import {
   AuthenticateOptionsDto,
   RegistrationResponseDto,
   RegistrationVerifiedDto,
+  WebAuthnCredentialDto,
 } from './dto';
 
 @ApiTags('webauthn')
@@ -32,9 +47,11 @@ export class WebAuthnController {
     summary: 'Get passkey registration options',
     description:
       'Generates WebAuthn registration (attestation) options for the ' +
-      'authenticated user and stores the challenge server-side.',
+      'authenticated user and stores the challenge server-side. Rejects ' +
+      'with 409 once the per-device credentials limit is reached.',
   })
   @ApiOkResponse({ description: 'PublicKeyCredentialCreationOptionsJSON.' })
+  @ApiConflictResponse({ description: 'WEBAUTHN_CREDENTIAL_LIMIT_REACHED.' })
   registerOptions(
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<PublicKeyCredentialCreationOptionsJSON> {
@@ -47,7 +64,8 @@ export class WebAuthnController {
     summary: 'Verify passkey registration',
     description:
       'Verifies the attestation response against the stored challenge and ' +
-      'persists the credential on success.',
+      'persists the credential on success. An optional `deviceName` may be ' +
+      'included to label the passkey in the device management list.',
   })
   @ApiOkResponse({ type: RegistrationVerifiedDto })
   @ApiBadRequestResponse({
@@ -57,10 +75,57 @@ export class WebAuthnController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: RegistrationResponseDto,
   ): Promise<RegistrationVerifiedDto> {
+    const { deviceName, ...response } = body;
     return this.webAuthnService.verifyRegistration(
       user,
-      body as unknown as RegistrationResponseJSON,
+      response as unknown as RegistrationResponseJSON,
+      deviceName,
     );
+  }
+
+  @Get('credentials')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'List the authenticated user\u2019s registered passkeys',
+    description:
+      'Returns device management data for every passkey the user has ' +
+      'registered. Does not include the raw credential ID or public key.',
+  })
+  @ApiOkResponse({ type: WebAuthnCredentialDto, isArray: true })
+  async listCredentials(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<WebAuthnCredentialDto[]> {
+    const credentials = await this.webAuthnService.listCredentials(user);
+    return credentials.map((c) => ({
+      id: c.id,
+      deviceName: c.deviceName,
+      createdAt: c.createdAt.toISOString(),
+      lastUsedAt: c.lastUsedAt ? c.lastUsedAt.toISOString() : null,
+    }));
+  }
+
+  @Delete('credentials/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Revoke a registered passkey',
+    description:
+      'Deletes a passkey the user no longer controls (e.g. a lost or ' +
+      'replaced device). Refuses to remove the user\u2019s last remaining ' +
+      'credential — register a replacement first.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Credential record UUID',
+    format: 'uuid',
+  })
+  @ApiNoContentResponse({ description: 'Credential revoked.' })
+  @ApiNotFoundResponse({ description: 'WEBAUTHN_CREDENTIAL_NOT_FOUND.' })
+  @ApiConflictResponse({ description: 'WEBAUTHN_LAST_CREDENTIAL.' })
+  revokeCredential(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<void> {
+    return this.webAuthnService.revokeCredential(user, id);
   }
 
   @Post('authenticate/options')
