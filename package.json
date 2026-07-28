@@ -93,6 +93,12 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^@noble/hashes/sha2\\.js$": "<rootDir>/test/mocks/noble-hashes-sha2.ts",
+      "^@noble/ed25519$": "<rootDir>/test/mocks/noble-ed25519.ts",
+      "^uint8array-extras$": "<rootDir>/test/mocks/uint8array-extras.ts",
+      "^smol-toml$": "<rootDir>/test/mocks/smol-toml.ts"
+    },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
