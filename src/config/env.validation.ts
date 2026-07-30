@@ -17,7 +17,9 @@ export const envValidationSchema = Joi.object({
   STELLAR_NETWORK: Joi.string().valid('testnet', 'mainnet').required(),
   STELLAR_HORIZON_URL: Joi.string().uri().required(),
   STELLAR_RPC_URL: Joi.string().uri().required(),
-  STELLAR_USDC_ISSUER: Joi.string().required(),
+  STELLAR_USDC_ISSUER: Joi.string()
+    .pattern(/^G[A-Z2-7]{55}$/)
+    .required(),
   STELLAR_NETWORK_PASSPHRASE: Joi.string().required(),
   WEBAUTHN_RP_ID: Joi.string().required(),
   WEBAUTHN_RP_NAME: Joi.string().required(),
